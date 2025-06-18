@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Tab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <h1 class="header__title">Quick Links</h1>
+    <button class="btn btn--primary" id="addLinkBtn">Add Link</button>
+  </header>
+
+  <main class="main">
+    <div class="links-grid" id="linksContainer">
+      <!-- Links will be added here dynamically -->
+    </div>
+  </main>
+
+  <dialog class="dialog" id="linkDialog">
+    <div class="dialog__content">
+      <h2 class="dialog__title">Add New Link</h2>
+      <form class="form" id="linkForm">
+        <div class="form__group">
+          <label for="linkName" class="label">Name</label>
+          <input type="text" id="linkName" class="input" required>
+        </div>
+        <div class="form__group">
+          <label for="linkUrl" class="label">URL</label>
+          <input type="url" id="linkUrl" class="input" required placeholder="https://example.com">
+        </div>
+        <div class="form__actions">
+          <button type="button" class="btn btn--secondary" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn btn--primary">Add Link</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>

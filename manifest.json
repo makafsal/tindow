@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Carbon New Tab",
+  "version": "1.0",
+  "description": "A clean new tab page with Carbon Design System",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "permissions": ["storage"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
+  }
+}
