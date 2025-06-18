@@ -7,6 +7,7 @@ A new tab extension for Chrome browser
 ```bash
 git clone git@github.com:makafsal/tindow.git
 ```
+Or download the zip and extract in your local
 2. Go to Chrome extension manager `chrome://extensions/` by giving this in the address bar
 3. Enable the `Developer mode`
 4. Click the button `Load unpacked`
