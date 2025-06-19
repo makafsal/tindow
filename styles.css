@@ -1,5 +1,5 @@
 /* Import IBM Plex Sans from Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap");
 
 :root {
   --primary: #0f62fe;
@@ -11,7 +11,7 @@
   --border: #e0e0e0;
   --danger: #da1e28;
 
-  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -34,7 +34,7 @@
 }
 
 body {
-  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
   background-color: var(--background);
   color: var(--text-primary);
   min-height: 100vh;
@@ -70,7 +70,6 @@ body {
 
 .link-card {
   background-color: var(--surface);
-  border-radius: 8px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -99,6 +98,9 @@ body {
   text-align: center;
   word-break: break-word;
   width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .btn {
@@ -134,7 +136,6 @@ body {
 
 .dialog {
   border: none;
-  border-radius: 8px;
   padding: 0;
   width: 90%;
   max-width: 400px;
@@ -177,7 +178,6 @@ body {
 
 .input {
   padding: 0.75rem 1rem;
-  border-radius: 4px;
   border: 1px solid var(--border);
   background-color: var(--background);
   color: var(--text-primary);
@@ -198,14 +198,25 @@ body {
 }
 
 .delete-btn {
-  background-color: transparent;
   border: none;
-  color: var(--danger);
+  background-color: var(--danger);
   cursor: pointer;
   font-size: 0.75rem;
-  margin-top: 0.5rem;
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.35rem 0.5rem;
 }
 
 .delete-btn:hover {
   text-decoration: underline;
+}
+
+.link-card-container {
+  position: relative;
+}
+
+.link-card-container:hover .delete-btn {
+  display: block;
 }
