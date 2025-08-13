@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Carbon New Tab",
+  "name": "Tindow",
   "version": "1.0",
   "description": "A clean new tab page with Carbon Design System",
   "chrome_url_overrides": {

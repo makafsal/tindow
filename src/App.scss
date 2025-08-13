@@ -1,0 +1,15 @@
+@use "@carbon/styles/scss/spacing" as *;
+@use "@carbon/type";
+
+.tabs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .date-time {
+    @include type.type-scale(6);
+    display: inline-flex;
+    white-space: nowrap;
+    padding-right: $spacing-05;
+  }
+}
