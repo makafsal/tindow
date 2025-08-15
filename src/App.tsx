@@ -1,91 +1,340 @@
 import { useEffect, useState } from "react";
 import {
   Button,
-  Checkbox,
-  Layer,
+  ComposedModal,
+  Heading,
+  IconButton,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
   Tab,
   TabList,
   TabPanel,
   TabPanels,
-  Tabs
+  Tabs,
+  TextInput
 } from "@carbon/react";
+import { Add } from "@carbon/react/icons";
+import { Grid, Column } from "@carbon/react";
 
 import "./App.scss";
+import { getFormattedDate } from "./utils/getFormattedDate";
+import { addTab, addTabs, getTabs } from "./storage/tabs";
+import type { ITab } from "./types";
 
 function App() {
   const [date, setDate] = useState<string>();
+  const [tabs, setTabs] = useState<ITab[]>([]);
+  const [openTabModal, setOpenTabModal] = useState(false);
+  const [tabName, setTabName] = useState("");
+  const [tabNameInputValid, setTabNameInputValid] = useState(true);
+  const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
+  const [tabToAction, setTabToAction] = useState<ITab | null>();
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
 
+  // Date update effect
   useEffect(() => {
     const updateDate = () => {
-      const date = new Date();
+      const date = getFormattedDate();
 
-      // Get day name
-      const weekday = date.toLocaleString("en-US", { weekday: "long" });
-
-      // Get month name
-      const month = date.toLocaleString("en-US", { month: "long" });
-
-      // Get day of month
-      const day = date.getDate();
-
-      // Get time in 12-hour format with AM/PM
-      let hours = date.getHours();
-      const minutes = date.getMinutes().toString().padStart(2, "0");
-      const seconds = date.getSeconds().toString().padStart(2, "0");
-      // Determine AM or PM
-      const ampm = hours >= 12 ? "PM" : "AM";
-      hours = hours % 12 || 12; // convert 0 → 12
-
-      // Final format
-      const formatted = `${weekday} | ${month} ${day} | ${hours}:${minutes}:${seconds} ${ampm}`;
-
-      setDate(formatted);
+      setDate(date);
     };
 
     updateDate(); // Initial call to set date immediately
     setInterval(updateDate, 1000); // Update every second
   }, []);
 
+  const fetchData = async () => {
+    const tabs = await getTabs();
+
+    setTabs(tabs);
+  };
+
+  // Data fetching effect
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const onSubmitTabForm = async () => {
+    if (!tabName?.trim()?.length) {
+      setTabNameInputValid(false);
+      return;
+    }
+
+    setTabNameInputValid(true);
+
+    if (tabToAction?.id && tabToAction?.name?.trim() !== tabName.trim()) {
+      // Update existing tab
+      const updatedTabs = tabs.map((tab) =>
+        tab.id === tabToAction.id ? { ...tab, name: tabName.trim() } : tab
+      );
+      await addTabs(updatedTabs);
+      setTabs(updatedTabs);
+      setTabToAction(null);
+    } else {
+      // Create new tab
+
+      const newTab: ITab = {
+        id: crypto.randomUUID(),
+        name: tabName.trim()
+      };
+
+      addTab(newTab);
+      setTabs((prevTabs) => [...prevTabs, newTab]);
+    }
+
+    setOpenTabModal(false);
+    setTabName("");
+    setTimeout(() => fetchData(), 1000); // Refresh tabs from storage
+  };
+
+  const onDeleteTab = async (tabId: string) => {
+    const updatedTabs = tabs.filter((tab) => tab.id !== tabId);
+    setTabs(updatedTabs);
+    await addTabs(updatedTabs); // Update storage
+    setTimeout(() => fetchData(), 1000); // Refresh tabs from storage
+  };
+
+  const handleTabChange = (evt: { selectedIndex: number }) => {
+    setActiveTabIndex(evt?.selectedIndex);
+  };
+
   return (
     <>
-      <Tabs>
+      <ComposedModal
+        open={openTabModal}
+        onClose={() => {
+          setOpenTabModal(false);
+        }}
+      >
+        <ModalHeader title={tabToAction?.id ? "Edit tab" : "Create new tab"} />
+        <ModalBody>
+          <TextInput
+            data-modal-primary-focus
+            id="tab-name-input"
+            labelText="Tab name"
+            placeholder="Enter tab name"
+            required={true}
+            value={tabName}
+            onChange={(e) => setTabName(e.target.value)}
+            invalid={!tabNameInputValid}
+            invalidText={!tabNameInputValid ? "Tab name is required" : ""}
+          />
+        </ModalBody>
+        <ModalFooter
+          primaryButtonText={tabToAction?.id ? "Update" : "Create"}
+          secondaryButtonText="Cancel"
+          onRequestSubmit={onSubmitTabForm}
+          children={undefined}
+        />
+      </ComposedModal>
+      <Modal
+        danger={true}
+        // launcherButtonRef={button}
+        modalHeading="Delete tab"
+        primaryButtonText="Delete"
+        secondaryButtonText="Cancel"
+        open={deleteConfirmModalOpen}
+        onRequestSubmit={() => {
+          if (!tabToAction) return;
+
+          onDeleteTab(tabToAction.id);
+          setDeleteConfirmModalOpen(false);
+          setTabToAction(null);
+          setActiveTabIndex(0);
+        }}
+        onRequestClose={() => {
+          setTabToAction(null);
+          setDeleteConfirmModalOpen(false);
+        }}
+      >
+        <p
+          style={{
+            marginBottom: "1rem"
+          }}
+        >
+          Are you sure you want to delete this{" "}
+          <strong>{tabToAction?.name}</strong> tab?
+        </p>
+      </Modal>
+      <Tabs
+        dismissable={true}
+        onTabCloseRequest={(tabIndex) => {
+          const _tab = tabs[tabIndex];
+          setTabToAction(_tab);
+          setDeleteConfirmModalOpen(true);
+        }}
+        selectedIndex={activeTabIndex}
+        onChange={handleTabChange}
+      >
         <div className="tabs-header">
-          <TabList contained>
-            <Tab>Dashboard</Tab>
-            <Tab>Monitoring</Tab>
-            <Tab>Activity</Tab>
-            <Tab>Analyze</Tab>
-            <Tab disabled>Settings</Tab>
-          </TabList>
+          <div className="tab-list">
+            <TabList contained>
+              {tabs.map((tab: ITab) => (
+                <Tab key={tab.id}>{tab.name}</Tab>
+              ))}
+            </TabList>
+            <IconButton
+              label="Add tab"
+              kind="ghost"
+              onClick={() => setOpenTabModal(true)}
+            >
+              <Add />
+            </IconButton>
+          </div>
           <div className="date-time cds--type-light">{date}</div>
         </div>
-        <TabPanels>
-          <TabPanel>Tab Panel 1</TabPanel>
-          <TabPanel>
-            <Layer>
-              <form
-                style={{
-                  margin: "2em"
-                }}
-              >
-                <legend className={`cds--label`}>Validation example</legend>
-                <Checkbox id="cb" labelText="Accept privacy policy" />
-                <Button
-                  style={{
-                    marginTop: "1rem",
-                    marginBottom: "1rem"
-                  }}
-                  type="submit"
-                >
-                  Submit
-                </Button>
-              </form>
-            </Layer>
-          </TabPanel>
-          <TabPanel>Tab Panel 3</TabPanel>
-          <TabPanel>Tab Panel 4</TabPanel>
-          <TabPanel>Tab Panel 5</TabPanel>
-        </TabPanels>
+        <div className="tabs-content">
+          <TabPanels>
+            {tabs.map((tab: ITab) => (
+              <TabPanel className="mh-100 o-hidden" key={`panel-${tab.id}`}>
+                <Grid as="div" className="pt-1 mh-100 o-auto">
+                  <Column className="p-relative h-85vh o-auto" xlg={4} lg={4}>
+                    <Heading>{tab.name}</Heading>
+                    <div className="edit-tab-section">
+                      <Button
+                        size="sm"
+                        kind="tertiary"
+                        onClick={() => {
+                          setTabToAction(tab);
+                          setTabName(tab.name);
+                          setOpenTabModal(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  </Column>
+                  <Column xlg={8} lg={8} className="h-85vh o-auto">
+                    <p>First</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>sdfsd</p>
+                    <p>Last</p>
+                  </Column>
+                  <Column xlg={4} lg={4} />
+                </Grid>
+              </TabPanel>
+            ))}
+          </TabPanels>
+        </div>
       </Tabs>
     </>
   );

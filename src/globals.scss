@@ -2,9 +2,44 @@
   $font-path: "@ibm/plex"
 );
 @use "@carbon/type";
+@use "@carbon/react/scss/zone";
+@use "@carbon/styles/scss/spacing" as *;
 
 :root {
   @include type.reset();
   @include type.default-type();
   @include type.type-classes();
+}
+
+// Utilities
+.d-inline-flex {
+  display: inline-flex;
+}
+
+.pt-1 {
+  padding-top: $spacing-07;
+}
+
+.mt-1 {
+  margin-top: $spacing-07;
+}
+
+.p-relative {
+  position: relative;
+}
+
+.mh-100 {
+  max-height: 100%;
+}
+
+.h-85vh {
+  height: calc(100vh - ($spacing-12 + $spacing-07));
+}
+
+.o-auto {
+  overflow: auto;
+}
+
+.o-hidden {
+  overflow: hidden;
 }

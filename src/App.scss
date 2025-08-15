@@ -13,3 +13,17 @@
     padding-right: $spacing-05;
   }
 }
+
+.tabs-content {
+  height: calc(100vh - $spacing-09);
+}
+
+.tab-list {
+  display: inline-flex;
+  max-width: 50%;
+}
+
+.edit-tab-section {
+  position: absolute;
+  bottom: $spacing-07;
+}
