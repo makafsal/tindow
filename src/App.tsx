@@ -8,12 +8,15 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
+  Section,
   Tab,
   TabList,
   TabPanel,
   TabPanels,
   Tabs,
-  TextInput
+  TextInput,
+  Tile,
+  Toggle
 } from "@carbon/react";
 import { Add } from "@carbon/react/icons";
 import { Grid, Column } from "@carbon/react";
@@ -67,7 +70,7 @@ function App() {
     if (tabToAction?.id && tabToAction?.name?.trim() !== tabName.trim()) {
       // Update existing tab
       const updatedTabs = tabs.map((tab) =>
-        tab.id === tabToAction.id ? { ...tab, name: tabName.trim() } : tab
+        tab.id === tabToAction?.id ? { ...tab, name: tabName.trim() } : tab
       );
       await addTabs(updatedTabs);
       setTabs(updatedTabs);
@@ -98,6 +101,24 @@ function App() {
 
   const handleTabChange = (evt: { selectedIndex: number }) => {
     setActiveTabIndex(evt?.selectedIndex);
+  };
+
+  const updateOpenInNewTab = async (tab: ITab, checked: boolean) => {
+    const updatedTabs = tabs.map((_tab) =>
+      _tab.id === tab?.id
+        ? {
+            ..._tab,
+            config: {
+              ..._tab.config,
+              openInNewTab: checked
+            }
+          }
+        : _tab
+    );
+
+    await addTabs(updatedTabs);
+    setTabs(updatedTabs);
+    setTimeout(() => fetchData(), 1000); // Refresh tabs from storage
   };
 
   return (
@@ -139,7 +160,7 @@ function App() {
         onRequestSubmit={() => {
           if (!tabToAction) return;
 
-          onDeleteTab(tabToAction.id);
+          onDeleteTab(tabToAction?.id);
           setDeleteConfirmModalOpen(false);
           setTabToAction(null);
           setActiveTabIndex(0);
@@ -329,7 +350,24 @@ function App() {
                     <p>sdfsd</p>
                     <p>Last</p>
                   </Column>
-                  <Column xlg={4} lg={4} />
+                  <Column xlg={4} lg={4}>
+                    <Tile id="tile-1">
+                      <Section level={4}>
+                        <Heading>Configure</Heading>
+                        <br />
+                        <Toggle
+                          toggled={!!tab.config?.openInNewTab}
+                          id={tab.id}
+                          labelA="Off"
+                          labelB="On"
+                          labelText="Open links in new tab"
+                          onToggle={async (checked: boolean) => {
+                            updateOpenInNewTab(tab, checked);
+                          }}
+                        />
+                      </Section>
+                    </Tile>
+                  </Column>
                 </Grid>
               </TabPanel>
             ))}
