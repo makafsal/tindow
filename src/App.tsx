@@ -18,22 +18,28 @@ import {
   Tile,
   Toggle
 } from "@carbon/react";
-import { Add } from "@carbon/react/icons";
+import { Add, Edit, TrashCan } from "@carbon/react/icons";
 import { Grid, Column } from "@carbon/react";
 
 import "./App.scss";
 import { getFormattedDate } from "./utils/getFormattedDate";
 import { addTab, addTabs, getTabs } from "./storage/tabs";
-import type { ITab } from "./types";
+import { type ISection, type ITab } from "./types";
+import { addSection, addSections, getSections } from "./storage/sections";
 
 function App() {
   const [date, setDate] = useState<string>();
   const [tabs, setTabs] = useState<ITab[]>([]);
+  const [sections, setSections] = useState<ISection[]>([]);
   const [openTabModal, setOpenTabModal] = useState(false);
+  const [openSectionModal, setOpenSectionModal] = useState(false);
   const [tabName, setTabName] = useState("");
+  const [sectionName, setSectionName] = useState("");
   const [tabNameInputValid, setTabNameInputValid] = useState(true);
+  const [sectionNameInputValid, setSectionNameInputValid] = useState(true);
   const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
   const [tabToAction, setTabToAction] = useState<ITab | null>();
+  const [sectionToAction, setSectionToAction] = useState<ISection | null>();
   const [activeTabIndex, setActiveTabIndex] = useState(0);
 
   // Date update effect
@@ -48,15 +54,21 @@ function App() {
     setInterval(updateDate, 1000); // Update every second
   }, []);
 
-  const fetchData = async () => {
+  const fetchTabs = async () => {
     const tabs = await getTabs();
 
     setTabs(tabs);
   };
 
+  const fetchSections = async () => {
+    const sections = await getSections();
+    setSections(sections);
+  };
+
   // Data fetching effect
   useEffect(() => {
-    fetchData();
+    fetchTabs();
+    fetchSections();
   }, []);
 
   const onSubmitTabForm = async () => {
@@ -89,14 +101,62 @@ function App() {
 
     setOpenTabModal(false);
     setTabName("");
-    setTimeout(() => fetchData(), 1000); // Refresh tabs from storage
+    setTimeout(() => fetchTabs(), 1000); // Refresh tabs from storage
+  };
+
+  const onSubmitSectionForm = async () => {
+    if (!sectionName?.trim()?.length) {
+      setSectionNameInputValid(false);
+      return;
+    }
+
+    setSectionNameInputValid(true);
+
+    if (
+      sectionToAction?.id &&
+      sectionToAction?.name?.trim() !== sectionName.trim()
+    ) {
+      // Update existing tab
+      const updatedSections = sections.map((section) =>
+        section.id === sectionToAction?.id
+          ? { ...section, name: sectionName.trim() }
+          : section
+      );
+      await addSections(updatedSections);
+      setSections(updatedSections);
+      setSectionToAction(null);
+    } else {
+      // Create new tab
+
+      const newSection: ISection = {
+        id: crypto.randomUUID(),
+        name: sectionName.trim(),
+        tabId: tabs[activeTabIndex]?.id || ""
+      };
+
+      addSection(newSection);
+      setSections((prevSections) => [...prevSections, newSection]);
+    }
+
+    setOpenSectionModal(false);
+    setSectionName("");
+    setTimeout(() => fetchSections(), 1000); // Refresh tabs from storage
   };
 
   const onDeleteTab = async (tabId: string) => {
     const updatedTabs = tabs.filter((tab) => tab.id !== tabId);
     setTabs(updatedTabs);
     await addTabs(updatedTabs); // Update storage
-    setTimeout(() => fetchData(), 1000); // Refresh tabs from storage
+    setTimeout(() => fetchTabs(), 1000); // Refresh tabs from storage
+  };
+
+  const onDeleteSection = async (sectionId: string) => {
+    const updatedSections = sections.filter(
+      (section) => section.id !== sectionId
+    );
+    setSections(updatedSections);
+    await addSections(updatedSections); // Update storage
+    setTimeout(() => fetchSections(), 1000); // Refresh tabs from storage
   };
 
   const handleTabChange = (evt: { selectedIndex: number }) => {
@@ -118,11 +178,12 @@ function App() {
 
     await addTabs(updatedTabs);
     setTabs(updatedTabs);
-    setTimeout(() => fetchData(), 1000); // Refresh tabs from storage
+    setTimeout(() => fetchTabs(), 1000); // Refresh tabs from storage
   };
 
   return (
     <>
+      {/* Tab modal */}
       <ComposedModal
         open={openTabModal}
         onClose={() => {
@@ -150,6 +211,39 @@ function App() {
           children={undefined}
         />
       </ComposedModal>
+      {/* Section modal */}
+      <ComposedModal
+        open={openSectionModal}
+        onClose={() => {
+          setOpenSectionModal(false);
+        }}
+      >
+        <ModalHeader
+          title={sectionToAction?.id ? "Edit section" : "Create new section"}
+        />
+        <ModalBody>
+          <TextInput
+            data-modal-primary-focus
+            id="section-name-input"
+            labelText="Section name"
+            placeholder="Enter section name"
+            required={true}
+            value={sectionName}
+            onChange={(e) => setSectionName(e.target.value)}
+            invalid={!sectionNameInputValid}
+            invalidText={
+              !sectionNameInputValid ? "Section name is required" : ""
+            }
+          />
+        </ModalBody>
+        <ModalFooter
+          primaryButtonText={sectionToAction?.id ? "Update" : "Create"}
+          secondaryButtonText="Cancel"
+          onRequestSubmit={onSubmitSectionForm}
+          children={undefined}
+        />
+      </ComposedModal>
+      {/* Delete confirmation modal */}
       <Modal
         danger={true}
         // launcherButtonRef={button}
@@ -222,133 +316,71 @@ function App() {
                           setTabName(tab.name);
                           setOpenTabModal(true);
                         }}
+                        renderIcon={Edit}
                       >
                         Edit
                       </Button>
                     </div>
                   </Column>
                   <Column xlg={8} lg={8} className="h-85vh o-auto">
-                    <p>First</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>sdfsd</p>
-                    <p>Last</p>
+                    <div className="section-header">
+                      <Button
+                        size="sm"
+                        kind="tertiary"
+                        renderIcon={Add}
+                        onClick={() => setOpenSectionModal(true)}
+                      >
+                        Add section
+                      </Button>
+                    </div>
+                    {sections
+                      .filter((section) => section.tabId === tab.id)
+                      .map((section) => (
+                        <Tile className="mt-1">
+                          <Section level={3}>
+                            <Heading className="cds--type-light">
+                              {section.name}
+                            </Heading>
+                            <footer className="tile-footer">
+                              <div>
+                                <Button
+                                  size="sm"
+                                  kind="ghost"
+                                  renderIcon={Add}
+                                >
+                                  Add link
+                                </Button>
+                              </div>
+                              <div>
+                                <IconButton
+                                  label="Edit section"
+                                  autoAlign
+                                  size="sm"
+                                  kind="ghost"
+                                  onClick={() => {
+                                    setSectionToAction(section);
+                                    setSectionName(section.name);
+                                    setOpenSectionModal(true);
+                                  }}
+                                >
+                                  <Edit />
+                                </IconButton>
+                                <IconButton
+                                  label="Delete section"
+                                  autoAlign
+                                  size="sm"
+                                  kind="ghost"
+                                  onClick={() => {
+                                    onDeleteSection(section.id);
+                                  }}
+                                >
+                                  <TrashCan />
+                                </IconButton>
+                              </div>
+                            </footer>
+                          </Section>
+                        </Tile>
+                      ))}
                   </Column>
                   <Column xlg={4} lg={4}>
                     <Tile id="tile-1">

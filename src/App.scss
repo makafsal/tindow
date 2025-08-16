@@ -1,5 +1,6 @@
 @use "@carbon/styles/scss/spacing" as *;
 @use "@carbon/type";
+@use "@carbon/react/scss/colors";
 
 .tabs-header {
   display: flex;
@@ -25,5 +26,19 @@
 
 .edit-tab-section {
   position: absolute;
-  bottom: $spacing-07;
+  bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+}
+
+.tile-footer {
+  border-top: 0.5px solid colors.$gray-50;
+  margin-top: $spacing-06;
+  display: flex;
+  justify-content: space-between;
+  padding-top: $spacing-03;
 }

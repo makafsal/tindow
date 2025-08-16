@@ -7,3 +7,16 @@ export interface ITab {
 export interface ITabConfig {
   openInNewTab?: boolean;
 }
+
+export interface ILink {
+  id: string;
+  name: string;
+  url: string;
+}
+
+export interface ISection {
+  id: string;
+  name: string;
+  tabId: string;
+  links?: ILink[];
+}
