@@ -11,6 +11,8 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
+  OverflowMenu,
+  OverflowMenuItem,
   Section,
   Tab,
   TabList,
@@ -21,7 +23,7 @@ import {
   Tile,
   Toggle
 } from "@carbon/react";
-import { Add, Checkmark, Edit, TrashCan } from "@carbon/react/icons";
+import { Add, Checkmark, Edit, Settings, TrashCan } from "@carbon/react/icons";
 import { Grid, Column } from "@carbon/react";
 
 import "./App.scss";
@@ -242,6 +244,49 @@ function App() {
     }
   };
 
+  const onExportData = () => {
+    const data = {
+      tabs,
+      sections
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tindow-data.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const onImportData = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string);
+          await addTabs(data.tabs || []);
+          await addSections(data.sections || []);
+          setTabs(data.tabs || []);
+          setSections(data.sections || []);
+        } catch (error) {
+          console.error("Failed to import data:", error);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
+
   return (
     <>
       {/* Tab modal */}
@@ -421,7 +466,16 @@ function App() {
               <Add />
             </IconButton>
           </div>
-          <div className="date-time cds--type-light">{date}</div>
+          <div>
+            <div className="date-time cds--type-light">{date}</div>
+            <OverflowMenu renderIcon={Settings} flipped>
+              <OverflowMenuItem itemText="Import" onClick={() => onImportData()} />
+              <OverflowMenuItem
+                itemText="Export"
+                onClick={() => onExportData()}
+              />
+            </OverflowMenu>
+          </div>
         </div>
         <div className="tabs-content">
           <TabPanels>
