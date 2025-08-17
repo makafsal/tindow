@@ -23,16 +23,27 @@ import {
   Tile,
   Toggle
 } from "@carbon/react";
-import { Add, Checkmark, Edit, Settings, TrashCan } from "@carbon/react/icons";
+import {
+  Add,
+  Checkmark,
+  ColorPalette,
+  Edit,
+  Settings,
+  TrashCan
+} from "@carbon/react/icons";
 import { Grid, Column } from "@carbon/react";
 
 import "./App.scss";
 import { getFormattedDate } from "./utils/getFormattedDate";
 import { addTab, addTabs, getTabs } from "./storage/tabs";
-import { type ILink, type ISection, type ITab } from "./types";
+import { type ILink, type ISection, type ITab, type ThemeType } from "./types";
 import { addSection, addSections, getSections } from "./storage/sections";
 
-function App() {
+interface IAppProps {
+  onThemeChange: (theme: ThemeType) => void;
+}
+
+function App({ onThemeChange }: IAppProps) {
   const [date, setDate] = useState<string>();
   const [tabs, setTabs] = useState<ITab[]>([]);
   const [sections, setSections] = useState<ISection[]>([]);
@@ -48,6 +59,7 @@ function App() {
   const [tabToAction, setTabToAction] = useState<ITab | null>();
   const [sectionToAction, setSectionToAction] = useState<ISection | null>();
   const [activeTabIndex, setActiveTabIndex] = useState(0);
+  // const [theme, setTheme] = useState<ThemeType>("g100");
 
   // Date update effect
   useEffect(() => {
@@ -285,7 +297,7 @@ function App() {
       reader.readAsText(file);
     };
     input.click();
-  }
+  };
 
   return (
     <>
@@ -466,13 +478,34 @@ function App() {
               <Add />
             </IconButton>
           </div>
-          <div>
+          <div className="mr-quarter">
             <div className="date-time cds--type-light">{date}</div>
             <OverflowMenu renderIcon={Settings} flipped>
-              <OverflowMenuItem itemText="Import" onClick={() => onImportData()} />
+              <OverflowMenuItem
+                itemText="Import"
+                onClick={() => onImportData()}
+              />
               <OverflowMenuItem
                 itemText="Export"
                 onClick={() => onExportData()}
+              />
+            </OverflowMenu>
+            <OverflowMenu renderIcon={ColorPalette} flipped>
+              <OverflowMenuItem
+                itemText="white"
+                onClick={() => onThemeChange("white")}
+              />
+              <OverflowMenuItem
+                itemText="g10"
+                onClick={() => onThemeChange("g10")}
+              />
+              <OverflowMenuItem
+                itemText="g90"
+                onClick={() => onThemeChange("g90")}
+              />
+              <OverflowMenuItem
+                itemText="g100"
+                onClick={() => onThemeChange("g100")}
               />
             </OverflowMenu>
           </div>
