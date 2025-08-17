@@ -293,54 +293,59 @@ function App() {
               !sectionNameInputValid ? "Section name is required" : ""
             }
           />
-          <ContainedList
-            className="mt-1"
-            kind="on-page"
-            label="Links"
-            size="md"
-          >
-            {sectionToAction?.links?.map((link) => (
-              <ContainedListItem>
-                <div className="link-list-item">
-                  <Link href={link.url} key={link.id}>
-                    {link.name}
-                  </Link>
-                  <IconButton
-                    label="Delete link"
-                    size="sm"
-                    kind="ghost"
-                    onClick={() => onDeleteLink(link.id)}
-                  >
-                    <TrashCan />
-                  </IconButton>
-                </div>
-              </ContainedListItem>
-            ))}
-          </ContainedList>
-          <div className="link-inputs">
-            <TextInput
-              id="section-link-title-input"
-              labelText="Link title"
-              placeholder="Enter link title"
-              value={linkName}
-              onChange={(e) => setLinkName(e.target.value)}
-            />
-            <TextInput
-              id="section-link-title-input"
-              labelText="Link url"
-              placeholder="Link url"
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
-            />
-            <IconButton
-              label="Add link"
-              kind="ghost"
-              className="mt-1"
-              onClick={() => onAddLink()}
-            >
-              <Checkmark />
-            </IconButton>
-          </div>
+          {sectionToAction?.id ? (
+            <>
+              <ContainedList
+                className="mt-1"
+                kind="on-page"
+                label="Links"
+                size="md"
+              >
+                {sectionToAction?.links?.map((link) => (
+                  <ContainedListItem>
+                    <div className="link-list-item">
+                      <Link href={link.url} key={link.id}>
+                        {link.name}
+                      </Link>
+                      <IconButton
+                        label="Delete link"
+                        size="sm"
+                        kind="ghost"
+                        onClick={() => onDeleteLink(link.id)}
+                      >
+                        <TrashCan />
+                      </IconButton>
+                    </div>
+                  </ContainedListItem>
+                ))}
+              </ContainedList>
+
+              <div className="link-inputs">
+                <TextInput
+                  id="section-link-title-input"
+                  labelText="Link title"
+                  placeholder="Enter link title"
+                  value={linkName}
+                  onChange={(e) => setLinkName(e.target.value)}
+                />
+                <TextInput
+                  id="section-link-title-input"
+                  labelText="Link url"
+                  placeholder="Link url"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                />
+                <IconButton
+                  label="Add link"
+                  kind="ghost"
+                  className="mt-1"
+                  onClick={() => onAddLink()}
+                >
+                  <Checkmark />
+                </IconButton>
+              </div>
+            </>
+          ) : null}
         </ModalBody>
         <ModalFooter
           primaryButtonText={sectionToAction?.id ? "Update" : "Create"}
