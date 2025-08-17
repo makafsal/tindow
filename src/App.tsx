@@ -130,6 +130,8 @@ function App() {
       await addSections(updatedSections);
       setSections(updatedSections);
       setSectionToAction(null);
+      setLinkName("");
+      setLinkUrl("");
     } else {
       // Create new tab
 
@@ -145,6 +147,7 @@ function App() {
 
     setOpenSectionModal(false);
     setSectionName("");
+
     setTimeout(() => fetchSections(), 1000); // Refresh tabs from storage
   };
 
@@ -274,6 +277,12 @@ function App() {
         open={openSectionModal}
         onClose={() => {
           setOpenSectionModal(false);
+          setTimeout(() => {
+            setLinkName("");
+            setLinkUrl("");
+            setSectionName("");
+            setSectionToAction(null);
+          }, 300);
         }}
       >
         <ModalHeader
