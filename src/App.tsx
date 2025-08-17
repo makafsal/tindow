@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import {
   Button,
   ComposedModal,
+  ContainedList,
+  ContainedListItem,
   Heading,
   IconButton,
+  Link,
   Modal,
   ModalBody,
   ModalFooter,
@@ -18,13 +21,13 @@ import {
   Tile,
   Toggle
 } from "@carbon/react";
-import { Add, Edit, TrashCan } from "@carbon/react/icons";
+import { Add, Checkmark, Edit, TrashCan } from "@carbon/react/icons";
 import { Grid, Column } from "@carbon/react";
 
 import "./App.scss";
 import { getFormattedDate } from "./utils/getFormattedDate";
 import { addTab, addTabs, getTabs } from "./storage/tabs";
-import { type ISection, type ITab } from "./types";
+import { type ILink, type ISection, type ITab } from "./types";
 import { addSection, addSections, getSections } from "./storage/sections";
 
 function App() {
@@ -35,6 +38,8 @@ function App() {
   const [openSectionModal, setOpenSectionModal] = useState(false);
   const [tabName, setTabName] = useState("");
   const [sectionName, setSectionName] = useState("");
+  const [linkName, setLinkName] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
   const [tabNameInputValid, setTabNameInputValid] = useState(true);
   const [sectionNameInputValid, setSectionNameInputValid] = useState(true);
   const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
@@ -181,6 +186,59 @@ function App() {
     setTimeout(() => fetchTabs(), 1000); // Refresh tabs from storage
   };
 
+  const onAddLink = () => {
+    if (!linkName?.trim()?.length || !linkUrl?.trim()?.length) {
+      return;
+    }
+
+    const newLink: ILink = {
+      id: crypto.randomUUID(),
+      name: linkName.trim(),
+      url: linkUrl.trim()
+    };
+
+    const updatedSections = sections.map((section) => {
+      if (section.id === sectionToAction?.id) {
+        return {
+          ...section,
+          links: [...(section.links || []), newLink]
+        };
+      }
+      return section;
+    });
+
+    addSections(updatedSections);
+    setSections(updatedSections);
+    const updatedSection = updatedSections.find(
+      (section) => section.id === sectionToAction?.id
+    );
+    setSectionToAction(updatedSection);
+    setLinkName("");
+    setLinkUrl("");
+    setTimeout(() => fetchSections(), 1000); // Refresh sections from storage
+  };
+
+  const onDeleteLink = (linkId: string) => {
+    {
+      const updatedSections = sections.map((section) => {
+        if (section.id === sectionToAction?.id) {
+          return {
+            ...section,
+            links: section.links?.filter((l) => l.id !== linkId)
+          };
+        }
+        return section;
+      });
+      addSections(updatedSections);
+      setSections(updatedSections);
+      const updatedSection = updatedSections.find(
+        (section) => section.id === sectionToAction?.id
+      );
+      setSectionToAction(updatedSection);
+      setTimeout(() => fetchSections(), 1000); // Refresh sections from storage
+    }
+  };
+
   return (
     <>
       {/* Tab modal */}
@@ -235,12 +293,63 @@ function App() {
               !sectionNameInputValid ? "Section name is required" : ""
             }
           />
+          <ContainedList
+            className="mt-1"
+            kind="on-page"
+            label="Links"
+            size="md"
+          >
+            {sectionToAction?.links?.map((link) => (
+              <ContainedListItem>
+                <div className="link-list-item">
+                  <Link href={link.url} key={link.id}>
+                    {link.name}
+                  </Link>
+                  <IconButton
+                    label="Delete link"
+                    size="sm"
+                    kind="ghost"
+                    onClick={() => onDeleteLink(link.id)}
+                  >
+                    <TrashCan />
+                  </IconButton>
+                </div>
+              </ContainedListItem>
+            ))}
+          </ContainedList>
+          <div className="link-inputs">
+            <TextInput
+              id="section-link-title-input"
+              labelText="Link title"
+              placeholder="Enter link title"
+              value={linkName}
+              onChange={(e) => setLinkName(e.target.value)}
+            />
+            <TextInput
+              id="section-link-title-input"
+              labelText="Link url"
+              placeholder="Link url"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+            />
+            <IconButton
+              label="Add link"
+              kind="ghost"
+              className="mt-1"
+              onClick={() => onAddLink()}
+            >
+              <Checkmark />
+            </IconButton>
+          </div>
         </ModalBody>
         <ModalFooter
           primaryButtonText={sectionToAction?.id ? "Update" : "Create"}
-          secondaryButtonText="Cancel"
+          secondaryButtonText="Close"
           onRequestSubmit={onSubmitSectionForm}
           children={undefined}
+          primaryButtonDisabled={
+            sectionToAction?.name?.trim() === sectionName.trim()
+          }
         />
       </ComposedModal>
       {/* Delete confirmation modal */}
@@ -341,42 +450,47 @@ function App() {
                             <Heading className="cds--type-light">
                               {section.name}
                             </Heading>
-                            <footer className="tile-footer">
-                              <div>
+                            <div className="tile-links">
+                              {section.links?.map((link) => (
                                 <Button
-                                  size="sm"
-                                  kind="ghost"
-                                  renderIcon={Add}
+                                  key={link.id}
+                                  kind="tertiary"
+                                  href={link.url}
+                                  target={
+                                    tab.config?.openInNewTab
+                                      ? "_blank"
+                                      : "_self"
+                                  }
                                 >
-                                  Add link
+                                  {link.name}
                                 </Button>
-                              </div>
-                              <div>
-                                <IconButton
-                                  label="Edit section"
-                                  autoAlign
-                                  size="sm"
-                                  kind="ghost"
-                                  onClick={() => {
-                                    setSectionToAction(section);
-                                    setSectionName(section.name);
-                                    setOpenSectionModal(true);
-                                  }}
-                                >
-                                  <Edit />
-                                </IconButton>
-                                <IconButton
-                                  label="Delete section"
-                                  autoAlign
-                                  size="sm"
-                                  kind="ghost"
-                                  onClick={() => {
-                                    onDeleteSection(section.id);
-                                  }}
-                                >
-                                  <TrashCan />
-                                </IconButton>
-                              </div>
+                              ))}
+                            </div>
+                            <footer className="tile-footer">
+                              <IconButton
+                                label="Edit section"
+                                autoAlign
+                                size="sm"
+                                kind="ghost"
+                                onClick={() => {
+                                  setSectionToAction(section);
+                                  setSectionName(section.name);
+                                  setOpenSectionModal(true);
+                                }}
+                              >
+                                <Edit />
+                              </IconButton>
+                              <IconButton
+                                label="Delete section"
+                                autoAlign
+                                size="sm"
+                                kind="ghost"
+                                onClick={() => {
+                                  onDeleteSection(section.id);
+                                }}
+                              >
+                                <TrashCan />
+                              </IconButton>
                             </footer>
                           </Section>
                         </Tile>

@@ -39,6 +39,27 @@
   border-top: 0.5px solid colors.$gray-50;
   margin-top: $spacing-06;
   display: flex;
-  justify-content: space-between;
+  justify-content: right;
   padding-top: $spacing-03;
+}
+
+.tile-links {
+  display: flex;
+  flex-direction: row;
+  gap: $spacing-03;
+  margin-top: $spacing-05;
+  flex-wrap: wrap;
+}
+
+.link-inputs {
+  display: flex;
+  flex-direction: row;
+  gap: $spacing-03;
+  margin-top: $spacing-05;
+}
+
+.link-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
