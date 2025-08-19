@@ -11,6 +11,8 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
+  OverflowMenu,
+  OverflowMenuItem,
   Section,
   Tab,
   TabList,
@@ -21,16 +23,28 @@ import {
   Tile,
   Toggle
 } from "@carbon/react";
-import { Add, Checkmark, Edit, TrashCan } from "@carbon/react/icons";
+import {
+  Add,
+  Checkmark,
+  ColorPalette,
+  Edit,
+  Settings,
+  SettingsAdjust,
+  TrashCan
+} from "@carbon/react/icons";
 import { Grid, Column } from "@carbon/react";
 
 import "./App.scss";
 import { getFormattedDate } from "./utils/getFormattedDate";
 import { addTab, addTabs, getTabs } from "./storage/tabs";
-import { type ILink, type ISection, type ITab } from "./types";
+import { type ILink, type ISection, type ITab, type ThemeType } from "./types";
 import { addSection, addSections, getSections } from "./storage/sections";
 
-function App() {
+interface IAppProps {
+  onThemeChange: (theme: ThemeType) => void;
+}
+
+function App({ onThemeChange }: IAppProps) {
   const [date, setDate] = useState<string>();
   const [tabs, setTabs] = useState<ITab[]>([]);
   const [sections, setSections] = useState<ISection[]>([]);
@@ -46,6 +60,7 @@ function App() {
   const [tabToAction, setTabToAction] = useState<ITab | null>();
   const [sectionToAction, setSectionToAction] = useState<ISection | null>();
   const [activeTabIndex, setActiveTabIndex] = useState(0);
+  // const [theme, setTheme] = useState<ThemeType>("g100");
 
   // Date update effect
   useEffect(() => {
@@ -242,6 +257,49 @@ function App() {
     }
   };
 
+  const onExportData = () => {
+    const data = {
+      tabs,
+      sections
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tindow-data.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const onImportData = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string);
+          await addTabs(data.tabs || []);
+          await addSections(data.sections || []);
+          setTabs(data.tabs || []);
+          setSections(data.sections || []);
+        } catch (error) {
+          console.error("Failed to import data:", error);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
   return (
     <>
       {/* Tab modal */}
@@ -421,7 +479,37 @@ function App() {
               <Add />
             </IconButton>
           </div>
-          <div className="date-time cds--type-light">{date}</div>
+          <div className="mr-quarter">
+            <div className="date-time cds--type-light">{date}</div>
+            <OverflowMenu renderIcon={ColorPalette} flipped>
+              <OverflowMenuItem
+                itemText="white"
+                onClick={() => onThemeChange("white")}
+              />
+              <OverflowMenuItem
+                itemText="g10"
+                onClick={() => onThemeChange("g10")}
+              />
+              <OverflowMenuItem
+                itemText="g90"
+                onClick={() => onThemeChange("g90")}
+              />
+              <OverflowMenuItem
+                itemText="g100"
+                onClick={() => onThemeChange("g100")}
+              />
+            </OverflowMenu>
+            <OverflowMenu renderIcon={Settings} flipped>
+              <OverflowMenuItem
+                itemText="Import"
+                onClick={() => onImportData()}
+              />
+              <OverflowMenuItem
+                itemText="Export"
+                onClick={() => onExportData()}
+              />
+            </OverflowMenu>
+          </div>
         </div>
         <div className="tabs-content">
           <TabPanels>
@@ -482,7 +570,7 @@ function App() {
                             </div>
                             <footer className="tile-footer">
                               <IconButton
-                                label="Edit section"
+                                label="Settings"
                                 autoAlign
                                 size="sm"
                                 kind="ghost"
@@ -492,7 +580,7 @@ function App() {
                                   setOpenSectionModal(true);
                                 }}
                               >
-                                <Edit />
+                                <SettingsAdjust />
                               </IconButton>
                               <IconButton
                                 label="Delete section"

@@ -20,3 +20,5 @@ export interface ISection {
   tabId: string;
   links?: ILink[];
 }
+
+export type ThemeType = "white" | "g10" | "g90" | "g100";
