@@ -29,6 +29,7 @@ import {
   ColorPalette,
   Edit,
   Settings,
+  SettingsAdjust,
   TrashCan
 } from "@carbon/react/icons";
 import { Grid, Column } from "@carbon/react";
@@ -480,16 +481,6 @@ function App({ onThemeChange }: IAppProps) {
           </div>
           <div className="mr-quarter">
             <div className="date-time cds--type-light">{date}</div>
-            <OverflowMenu renderIcon={Settings} flipped>
-              <OverflowMenuItem
-                itemText="Import"
-                onClick={() => onImportData()}
-              />
-              <OverflowMenuItem
-                itemText="Export"
-                onClick={() => onExportData()}
-              />
-            </OverflowMenu>
             <OverflowMenu renderIcon={ColorPalette} flipped>
               <OverflowMenuItem
                 itemText="white"
@@ -506,6 +497,16 @@ function App({ onThemeChange }: IAppProps) {
               <OverflowMenuItem
                 itemText="g100"
                 onClick={() => onThemeChange("g100")}
+              />
+            </OverflowMenu>
+            <OverflowMenu renderIcon={Settings} flipped>
+              <OverflowMenuItem
+                itemText="Import"
+                onClick={() => onImportData()}
+              />
+              <OverflowMenuItem
+                itemText="Export"
+                onClick={() => onExportData()}
               />
             </OverflowMenu>
           </div>
@@ -569,7 +570,7 @@ function App({ onThemeChange }: IAppProps) {
                             </div>
                             <footer className="tile-footer">
                               <IconButton
-                                label="Edit section"
+                                label="Settings"
                                 autoAlign
                                 size="sm"
                                 kind="ghost"
@@ -579,7 +580,7 @@ function App({ onThemeChange }: IAppProps) {
                                   setOpenSectionModal(true);
                                 }}
                               >
-                                <Edit />
+                                <SettingsAdjust />
                               </IconButton>
                               <IconButton
                                 label="Delete section"
