@@ -18,4 +18,4 @@ To build the bundle, run `npm run build`.
 
 ## 💡 Want to contribute?
 
-We’d love to have you on board! If you’re interested in contributing, just drop me a quick message (makafsal@gmail.com) first so we can sync up and have a short chat. Your ideas, feedback, and code can make Tindow even better 🚀
+We’d love to have you on board! If you’re interested in contributing, just drop me a message (makafsal@gmail.com) first so we can sync up and have a short chat. Your ideas, feedback, and code can make Tindow even better 🚀
